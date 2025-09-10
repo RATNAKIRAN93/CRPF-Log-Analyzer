@@ -1,0 +1,19 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  validate-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate YAML
+        run: python - <<'PY'
+import yaml,glob,sys
+for f in glob.glob('**/*.y*ml', recursive=True):
+  try:
+    yaml.safe_load(open(f))
+    print('OK', f)
+  except Exception as e:
+    print('ERR', f, e); sys.exit(1)
+PY
+      - name: Ensure docs folder exists
+        run: mkdir -p docs
