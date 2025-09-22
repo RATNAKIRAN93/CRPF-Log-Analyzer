@@ -1,38 +1,42 @@
-import os, json, time
+import os
+import json
+import time
 from kafka import KafkaConsumer
 from opensearchpy import OpenSearch
 
-KAFKA_BROKER = os.getenv("KAFKA_BROKER", "kafka:9092")
-OPENSEARCH_HOST = os.getenv("OPENSEARCH_HOST", "http://opensearch:9200")
-INDEX = os.getenv("OPENSEARCH_INDEX", "system-logs")
+# Env vars
+broker = os.getenv("KAFKA_BROKER", "kafka:9092")
+os_host = os.getenv("OPENSEARCH_HOST", "http://opensearch:9200")
+index = os.getenv("OPENSEARCH_INDEX", "system-logs")
 
-consumer = KafkaConsumer(
-    'system-logs',
-    bootstrap_servers=[KAFKA_BROKER],
-    value_deserializer=lambda x: json.loads(x.decode('utf-8')),
-    auto_offset_reset='earliest',
-    enable_auto_commit=True,
-    group_id='log-indexer'
-)
+# Retry until Kafka is up
+consumer = None
+for i in range(10):
+    try:
+        consumer = KafkaConsumer(
+            "system-logs",
+            bootstrap_servers=[broker],
+            value_deserializer=lambda v: json.loads(v.decode("utf-8")),
+            auto_offset_reset="earliest",
+            enable_auto_commit=True,
+            group_id="log-analyzer-group"
+        )
+        print(f"✅ Connected to Kafka at {broker}")
+        break
+    except Exception as e:
+        print(f"Kafka not ready, retrying in 5s... ({e})")
+        time.sleep(5)
 
-os_client = OpenSearch([OPENSEARCH_HOST], timeout=30)
+if not consumer:
+    raise RuntimeError("❌ Could not connect to Kafka")
 
-# create index if not exists
-try:
-    if not os_client.indices.exists(INDEX):
-        os_client.indices.create(index=INDEX, body={
-            "settings": {"number_of_shards": 1, "number_of_replicas": 0}
-        })
-except Exception as e:
-    print("Index setup error:", e)
+# Connect to OpenSearch
+client = OpenSearch([os_host])
+if not client.indices.exists(index=index):
+    client.indices.create(index=index)
 
-print("Consumer started, consuming from Kafka and indexing to OpenSearch...")
-
+# Consume and index
 for msg in consumer:
     doc = msg.value
-    try:
-        res = os_client.index(index=INDEX, document=doc)
-        print("Indexed", res.get("_id"))
-    except Exception as e:
-        print("Indexing error:", e)
-        time.sleep(1)
+    res = client.index(index=index, body=doc)
+    print(f"📥 Indexed into OpenSearch: {res['_id']} -> {doc}")
