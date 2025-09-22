@@ -1,0 +1,4 @@
+fastapi==0.95.2
+uvicorn==0.22.0
+opensearch-py==2.3.0
+pydantic
