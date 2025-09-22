@@ -1,0 +1,20 @@
+{
+  "name": "CRPF Log Analyzer — Ubuntu 22.04",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:1": {}
+  },
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y curl wget gnupg apt-transport-https ca-certificates openjdk-17-jre-headless python3-pip docker.io docker-compose-plugin && sudo usermod -aG docker $(whoami) && python3 -m pip install --upgrade pip setuptools virtualenv && npm install -g npm@latest",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-azuretools.vscode-docker",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  },
+  "remoteUser": "vscode",
+  "shutdownAction": "none"
+}
