@@ -1,0 +1,10 @@
+server.host: 0.0.0.0
+
+# Explicitly disable the security plugin (matches env DISABLE_SECURITY_DASHBOARDS_PLUGIN=true)
+opensearch_security.disabled: true
+
+offline.enabled: true
+# Point to OpenSearch
+opensearch.hosts: ["http://opensearch:9200"]
+# When security is disabled in OpenSearch, basic auth isn't available
+opensearch.requestHeadersWhitelist: ["securitytenant", "osd-xsrf"]
