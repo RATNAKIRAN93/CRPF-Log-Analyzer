@@ -4,7 +4,7 @@
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:1": {}
   },
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y curl wget gnupg apt-transport-https ca-certificates openjdk-17-jre-headless python3-pip docker.io docker-compose-plugin && sudo usermod -aG docker $(whoami) && python3 -m pip install --upgrade pip setuptools virtualenv && npm install -g npm@latest",
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y curl wget gnupg apt-transport-https ca-certificates openjdk-17-jre-headless python3-pip docker.io docker-compose-plugin && sudo usermod -aG docker $(whoami) && python3 -m pip install --upgrade pip setuptools virtualenv && npm install -g npm@latest && pip install -r consumer/requirements.txt -r fastapi/requirements.txt -r producers/producer/requirements.txt",
   "customizations": {
     "vscode": {
       "extensions": [
