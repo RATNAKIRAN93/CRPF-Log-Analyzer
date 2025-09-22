@@ -1,88 +1,135 @@
-services:
+version: "3.8"
 
+networks:
+  crpf-network:
+    driver: bridge
+
+volumes:
+  zookeeper-data:
+  kafka-data:
+  opensearch-data:
+
+services:
   zookeeper:
-    image: bitnami/zookeeper:3.8
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper
     environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
-    ports:
-      - "2181:2181"
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SYNC_LIMIT: 2
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-data:/var/lib/zookeeper/log
+    networks:
+      - crpf-network
+    healthcheck:
+      test: ["CMD", "bash", "-lc", "echo ruok | nc -w 2 localhost 2181 | grep imok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
 
   kafka:
-    image: bitnami/kafka:3.5
-    environment:
-      - KAFKA_BROKER_ID=1
-      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_LISTENERS=PLAINTEXT://:9092
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
-      - ALLOW_PLAINTEXT_LISTENER=yes
-    ports:
-      - "9092:9092"
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+      # Dual listeners: internal (DOCKER) and host (HOST)
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: DOCKER:PLAINTEXT,HOST:PLAINTEXT
+      KAFKA_LISTENERS: DOCKER://0.0.0.0:9093,HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: DOCKER://kafka:9093,HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: DOCKER
+
+      # Dev-safe single broker settings
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+
+      # Log cleanup to save disk in dev
+      KAFKA_LOG_RETENTION_HOURS: 24
+      KAFKA_LOG_SEGMENT_BYTES: 134217728
+      KAFKA_LOG_CLEANUP_POLICY: delete
+    ports:
+      - "9092:9092"   # Host access for apps (Codespaces forwards this)
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - crpf-network
+    healthcheck:
+      test: ["CMD", "bash", "-lc", "kafka-topics --list --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
 
   opensearch:
-    image: opensearchproject/opensearch:2.9.0
+    image: opensearchproject/opensearch:2.13.0
+    container_name: opensearch
     environment:
       - discovery.type=single-node
-      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
-      - plugins.security.disabled=true
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g"
+      # Disable security for dev; remove in production
+      - "DISABLE_SECURITY_PLUGIN=true"
     ulimits:
       memlock:
         soft: -1
         hard: -1
-    volumes:
-      - opensearch-data:/usr/share/opensearch/data
+      nofile:
+        soft: 65536
+        hard: 65536
     ports:
       - "9200:9200"
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    networks:
+      - crpf-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health || exit 1"]
-      interval: 10s
-      retries: 10
+      test: ["CMD", "bash", "-lc", "curl -sf http://localhost:9200/_cluster/health | grep -E 'green|yellow'"]
+      interval: 20s
+      timeout: 10s
+      retries: 15
+    restart: unless-stopped
 
   opensearch-dashboards:
-    image: opensearchproject/opensearch-dashboards:2.9.0
+    image: opensearchproject/opensearch-dashboards:2.13.0
+    container_name: opensearch-dashboards
     environment:
-      - OPENSEARCH_HOSTS=http://opensearch:9200
-      - DISABLE_SECURITY_DASHBOARDS_PLUGIN=true
+      OPENSEARCH_HOSTS: '["http://opensearch:9200"]'
+      DISABLE_SECURITY_DASHBOARDS_PLUGIN: "true"
     ports:
       - "5601:5601"
     depends_on:
-      - opensearch
+      opensearch:
+        condition: service_healthy
+    networks:
+      - crpf-network
+    healthcheck:
+      test: ["CMD", "bash", "-lc", "curl -sf http://localhost:5601/api/status | grep -q 'available'"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
 
-  producer1:
-    build: ./producers/producer
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
     environment:
-      - KAFKA_BROKER=kafka:9092
-      - ENDPOINT_NAME=endpoint-1
+      KAFKA_CLUSTERS_0_NAME: crpf-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9093
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
     depends_on:
-      - kafka
-
-  producer2:
-    build: ./producers/producer
-    environment:
-      - KAFKA_BROKER=kafka:9092
-      - ENDPOINT_NAME=endpoint-2
-    depends_on:
-      - kafka
-
-  consumer:
-    build: ./consumer
-    environment:
-      - KAFKA_BROKER=kafka:9092
-      - OPENSEARCH_HOST=http://opensearch:9200
-      - OPENSEARCH_INDEX=system-logs
-    depends_on:
-      - kafka
-      - opensearch
-
-  fastapi:
-    build: ./fastapi
+      kafka:
+        condition: service_healthy
     ports:
-      - "8000:8000"
-    environment:
-      - OPENSEARCH_HOST=http://opensearch:9200
-    depends_on:
-      - opensearch
-
-volumes:
-  opensearch-data:
+      - "8080:8080"
+    networks:
+      - crpf-network
+    restart: unless-stopped

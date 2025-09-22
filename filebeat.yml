@@ -1,0 +1,40 @@
+filebeat.inputs:
+  - type: filestream
+    id: docker-containers
+    enabled: true
+    paths:
+      - /var/lib/docker/containers/*/*.log
+    parsers:
+      - container:
+          stream: all
+          format: auto
+
+processors:
+  - add_fields:
+      target: crpf
+      fields:
+        source: "docker"
+        environment: "codespaces"
+  - add_host_metadata: ~
+  - add_docker_metadata: ~
+
+# send to Kafka (dual listeners; host apps use localhost:9092)
+output.kafka:
+  hosts: ["kafka:9093"]
+  topic: "crpf-endpoint-logs"
+  required_acks: 1
+  compression: gzip
+  max_message_bytes: 1000000
+  worker: 2
+  codec.format:
+    string: '%{[message]}'
+
+# optional (structured JSON) – comment codec above and use:
+# output.kafka:
+#   hosts: ["kafka:9093"]
+#   topic: "crpf-endpoint-logs"
+#   required_acks: 1
+#   compression: gzip
+#   max_message_bytes: 1000000
+#   worker: 2
+#   serializer: json
