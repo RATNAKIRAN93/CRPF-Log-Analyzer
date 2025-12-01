@@ -2,3 +2,5 @@ fastapi==0.95.2
 uvicorn==0.22.0
 opensearch-py==2.3.0
 pydantic
+pytest>=7.0.0
+httpx>=0.23.0,<0.28

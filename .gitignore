@@ -20,3 +20,9 @@ Thumbs.db
 # Node/npm (just in case)
 node_modules/
 *.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
