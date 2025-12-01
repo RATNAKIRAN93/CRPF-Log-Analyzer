@@ -1,4 +1,4 @@
-# Installation Guide
+# 📦 Installation Guide
 
 This guide provides step-by-step instructions to install and set up the CRPF Log Analyzer system.
 

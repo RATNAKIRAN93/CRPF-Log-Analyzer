@@ -1,4 +1,4 @@
-# Screenshots
+# 📸 Screenshots
 
 This directory contains screenshots of the CRPF Log Analyzer UI for documentation and training purposes.
 
@@ -6,32 +6,15 @@ This directory contains screenshots of the CRPF Log Analyzer UI for documentatio
 
 ## Required Screenshots
 
-Add the following screenshots to complete the documentation:
+After deploying the CRPF Log Analyzer, capture the following screenshots:
 
-### 1. **main_dashboard.png**
-- **Description**: Primary SOC dashboard
-- **What to capture**: Main security monitoring dashboard after login
-- **Should show**: Active alerts, log statistics, system health metrics, recent events
-
-### 2. **discover_view.png**
-- **Description**: Log search interface
-- **What to capture**: OpenSearch Dashboards Discover tab
-- **Should show**: Search bar, time filter, log entries, field sidebar
-
-### 3. **alert_details.png**
-- **Description**: Alert investigation view
-- **What to capture**: Detailed view of a security alert
-- **Should show**: Alert metadata, related events, timeline, actions
-
-### 4. **system_health.png**
-- **Description**: Infrastructure monitoring
-- **What to capture**: System health dashboard
-- **Should show**: CPU, memory, disk metrics, endpoint status
-
-### 5. **login_screen.png** (optional)
-- **Description**: Login/authentication page
-- **What to capture**: Login form before authentication
-- **Should show**: Username/password fields, CRPF branding
+| Screenshot | Description | What to Capture |
+|------------|-------------|-----------------|
+| `main_dashboard.png` | Primary SOC dashboard | Active alerts, log statistics, system health |
+| `discover_view.png` | Log search interface | Search bar, time filter, log entries |
+| `alert_details.png` | Alert investigation | Alert metadata, related events, timeline |
+| `system_health.png` | Infrastructure monitoring | CPU, memory, disk metrics |
+| `login_screen.png` | Login page (optional) | Authentication form |
 
 ---
 
@@ -51,51 +34,30 @@ Add the following screenshots to complete the documentation:
 
 ## How to Capture Screenshots
 
-### Using Browser
-1. Start the CRPF Log Analyzer stack: `docker compose up -d`
+1. Start the CRPF Log Analyzer: `docker compose up -d`
 2. Open OpenSearch Dashboards: http://localhost:5601
 3. Navigate to the desired view
-4. Use browser screenshot tool (F12 → Device toolbar → Capture screenshot)
-
-### Using Tools
-- **Windows**: Snipping Tool (Win+Shift+S)
-- **Linux**: gnome-screenshot, flameshot
-- **macOS**: Cmd+Shift+4
-
-### Full Page Capture
-For scrolling pages, use browser extensions:
-- Chrome: "Full Page Screen Capture"
-- Firefox: Built-in (Ctrl+Shift+S)
-
----
-
-## Usage in Documentation
-
-Reference screenshots in markdown files:
-
-```markdown
-![Main Dashboard](examples/screenshots/main_dashboard.png)
-*Description of what the screenshot shows*
-
-![Discover View](examples/screenshots/discover_view.png)
-*Log search and discovery interface*
-```
+4. Use browser screenshot tool or:
+   - **Windows**: Snipping Tool (Win+Shift+S)
+   - **Linux**: gnome-screenshot, flameshot
+   - **macOS**: Cmd+Shift+4
 
 ---
 
 ## Current Status
 
-| Screenshot | Status | Notes |
-|------------|--------|-------|
-| main_dashboard.png | ⏳ Pending | Add after initial deployment |
-| discover_view.png | ⏳ Pending | Capture from OpenSearch Dashboards |
-| alert_details.png | ⏳ Pending | Create sample alert first |
-| system_health.png | ⏳ Pending | Requires Metricbeat data |
-| login_screen.png | ⏳ Pending | Optional |
+| Screenshot | Status |
+|------------|--------|
+| main_dashboard.png | ⏳ Pending |
+| discover_view.png | ⏳ Pending |
+| alert_details.png | ⏳ Pending |
+| system_health.png | ⏳ Pending |
+
+> **Note**: Screenshots will be added after deployment. The README.md currently uses sample Kibana documentation images.
 
 ---
 
 ## See Also
 
-- [User Manual](../../docs/05_user_manual.md) - Uses these screenshots
-- [Dashboard Exports](../dashboards/) - Kibana/OpenSearch dashboard JSON files
+- [User Manual](../../docs/05_user_manual.md)
+- [Dashboard Exports](../dashboards/)

@@ -6,10 +6,49 @@
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED)](https://www.docker.com/)
 [![OpenSearch](https://img.shields.io/badge/OpenSearch-2.9.0-005EB8)](https://opensearch.org/)
 [![Kafka](https://img.shields.io/badge/Apache_Kafka-3.5-231F20)](https://kafka.apache.org/)
+[![Elasticsearch](https://img.shields.io/badge/Elasticsearch-9.x-005571)](https://www.elastic.co/)
+[![Wazuh](https://img.shields.io/badge/Wazuh-4.x-3AABE6)](https://wazuh.com/)
 
-> **Centralized, AI-assisted SIEM using ELK, Wazuh, and Beats for the Central Reserve Police Force (CRPF).**
+> **A Centralized, AI-Assisted SIEM Solution for the Central Reserve Police Force (CRPF)**  
+> Built to streamline security operations, detect threats in real-time, and provide comprehensive log analysis across all CRPF units nationwide.
 
 A centralized security log monitoring platform built on the Elastic Stack (Elasticsearch, Logstash, Kibana), OpenSearch, Kafka, and Wazuh to address **SIH Problem Statement 1408: IT System Log Analyzer (Blockchain & Cybersecurity)**.
+
+---
+
+## 📋 Table of Contents
+
+- [Overview](#-overview)
+- [Screenshots](#-screenshots)
+- [Key Features](#-key-features)
+- [Tech Stack](#tech-stack)
+- [System Architecture](#high-level-architecture)
+- [Getting Started](#-getting-started-local-lab)
+- [Use Cases](#use-cases--user-journeys)
+- [API Documentation](#documentation)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## 🌟 Overview
+
+**CRPF Log Analyzer** is a comprehensive Security Information and Event Management (SIEM) platform designed specifically for the Central Reserve Police Force. It provides centralized visibility into security events across all CRPF units, enabling proactive threat detection and rapid incident response.
+
+### Why CRPF Log Analyzer?
+
+- **🎯 Problem**: CRPF units face fragmented log visibility across 246+ battalions and offices nationwide
+- **💡 Solution**: Centralized ELK/OpenSearch stack with AI-powered threat detection
+- **📈 Impact**: Real-time security monitoring, faster incident response, unified SOC operations
+
+### What Makes It Different?
+
+- **Multi-Source Ingestion**: Collects logs from Windows, Linux, network devices via Beats & Wazuh agents
+- **Kafka Buffering**: High-throughput message queuing for reliable log delivery
+- **AI-Powered Detection**: Elastic ML for anomaly detection, Wazuh rules for correlation
+- **Role-Based Access**: Secure multi-tier access for SOC analysts, admins, and unit officers
+- **Real-Time Dashboards**: Live Kibana/OpenSearch visualizations for threat monitoring
 
 ---
 
@@ -27,29 +66,33 @@ This leads to delayed detection of breaches, fragmented security posture, and di
 
 ---
 
-## 📸 Screenshots
+## 🖼️ Screenshots
 
-### Main SOC Dashboard
-![Main Dashboard](examples/screenshots/placeholders/main_dashboard_placeholder.svg)
-*Real-time security monitoring dashboard showing system health, active alerts, and log statistics*
+### SOC Dashboard
+<img width="1920" alt="SOC Dashboard" src="https://raw.githubusercontent.com/elastic/kibana/main/docs/images/dashboard_ecommerce_background.png" />
+
+*Real-time security monitoring dashboard showing threat alerts, log volume, and system health metrics*
 
 ### Log Discovery & Search
-![Discover View](examples/screenshots/placeholders/discover_view_placeholder.svg)
-*OpenSearch Dashboards Discover interface for searching and analyzing logs*
+<img width="1920" alt="Discover View" src="https://raw.githubusercontent.com/elastic/kibana/main/docs/images/Discover-Start.png" />
+
+*OpenSearch/Kibana Discover interface for searching, filtering, and analyzing security logs*
 
 ### Alert Investigation
-![Alert Details](examples/screenshots/placeholders/alert_details_placeholder.svg)
-*Detailed alert view for incident investigation and forensic analysis*
+<img width="1920" alt="Alert Details" src="https://raw.githubusercontent.com/elastic/kibana/main/docs/images/siem-alert-details.png" />
+
+*Detailed alert investigation view for forensic analysis and incident response*
 
 ### System Health Monitoring
-![System Health](examples/screenshots/placeholders/system_health_placeholder.svg)
-*Infrastructure monitoring showing CPU, memory, and disk metrics across endpoints*
+<img width="1920" alt="System Health" src="https://raw.githubusercontent.com/elastic/kibana/main/docs/images/metrics-infrastructure-hosts.png" />
 
-> **Note**: These are placeholder images. Replace with actual screenshots after deployment. See [examples/screenshots/](examples/screenshots/) for guidelines.
+*Infrastructure monitoring showing CPU, memory, disk metrics across all CRPF endpoints*
+
+> **📸 Note**: Above screenshots show sample Kibana/OpenSearch dashboards. Actual CRPF dashboards will be customized after deployment. See [examples/screenshots/](examples/screenshots/) for documentation on capturing deployment screenshots.
 
 ---
 
-## Solution Overview
+## ✨ Solution Overview
 
 This project provides a **centralized log analysis system** that:
 
@@ -60,7 +103,7 @@ This project provides a **centralized log analysis system** that:
 
 ---
 
-## Key Features
+## 🔥 Key Features
 
 | Feature | Description |
 |---------|-------------|
@@ -136,19 +179,43 @@ For detailed architecture documentation, see [docs/03_architecture.md](docs/03_a
 
 ---
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-| Component | Technology | Version |
-|-----------|------------|---------|
-| **Search & Analytics** | Elasticsearch / OpenSearch | 9.x / 2.9.0 |
-| **Visualization** | Kibana / OpenSearch Dashboards | 9.x / 2.9.0 |
-| **Log Processing** | Logstash | 9.x |
-| **Message Queue** | Apache Kafka | 3.5 |
-| **Security Platform** | Wazuh Manager | 4.x |
-| **Agents** | Winlogbeat, Filebeat, Metricbeat, Wazuh agents | Latest |
-| **Backend API** | Python FastAPI | 3.x |
-| **Container Platform** | Docker & Docker Compose | Latest |
-| **Optional Frontend** | React/Vite | - |
+### Backend & Data Processing
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **Elasticsearch** | 9.x | Primary search and analytics engine |
+| **OpenSearch** | 2.9.0 | Alternative open-source search engine |
+| **Logstash** | 9.x | Log processing and transformation |
+| **Apache Kafka** | 3.5 | High-throughput message buffering |
+| **Python FastAPI** | 0.95.2 | REST API for programmatic access |
+| **Uvicorn** | 0.22.0 | ASGI server for FastAPI |
+
+### Security & Monitoring
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **Wazuh** | 4.x | Host-based intrusion detection (HIDS) |
+| **Winlogbeat** | Latest | Windows event log collection |
+| **Filebeat** | Latest | Linux/application log collection |
+| **Metricbeat** | Latest | System and service metrics |
+
+### Visualization & Dashboards
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **Kibana** | 9.x | Elasticsearch visualization |
+| **OpenSearch Dashboards** | 2.9.0 | OpenSearch visualization |
+| **React/Vite** | Latest | Custom frontend (optional) |
+
+### Infrastructure
+
+| Technology | Purpose |
+|------------|---------|
+| **Docker** | Containerization |
+| **Docker Compose** | Multi-container orchestration |
+| **Zookeeper** | Kafka coordination |
 
 ---
 
@@ -353,6 +420,22 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## Contact
+## 📞 Contact & Support
 
-For questions or support regarding this project, please open an issue in the GitHub repository.
+For questions, issues, or suggestions:
+
+- **GitHub Issues**: [Create an issue](https://github.com/RATNAKIRAN93/CRPF-Log-Analyzer/issues)
+- **Documentation**: See the [docs/](docs/) folder for detailed guides
+
+---
+
+<div align="center">
+
+**Made with ❤️ for CRPF and Indian National Security**
+
+⭐ Star this repo if you find it helpful!
+
+[![GitHub stars](https://img.shields.io/github/stars/RATNAKIRAN93/CRPF-Log-Analyzer.svg?style=social&label=Star)](https://github.com/RATNAKIRAN93/CRPF-Log-Analyzer)
+[![GitHub forks](https://img.shields.io/github/forks/RATNAKIRAN93/CRPF-Log-Analyzer.svg?style=social&label=Fork)](https://github.com/RATNAKIRAN93/CRPF-Log-Analyzer/fork)
+
+</div>
