@@ -43,7 +43,11 @@ class LogAnalysisAgent:
         "error_rate_percent": 20,  # Alert if error rate exceeds 20%
         "events_per_minute": 100,  # Alert if events exceed this rate
         "failed_logins_threshold": 5,  # Alert if failed logins exceed this count
+        "multiple_ips_threshold": 5,  # Alert if user accesses from more than this many IPs
     }
+
+    # Pattern for detecting failed login messages (used for anomaly detection)
+    FAILED_LOGIN_PATTERN = r"failed\s+password"
 
     def __init__(self):
         self.analysis_history: List[Dict[str, Any]] = []
@@ -180,7 +184,10 @@ class LogAnalysisAgent:
             })
 
         # Check for failed login attempts by user
-        failed_logins = [log for log in logs if "failed password" in log.get("message", "").lower()]
+        failed_logins = [
+            log for log in logs
+            if re.search(self.FAILED_LOGIN_PATTERN, log.get("message", ""), re.IGNORECASE)
+        ]
         user_failed_logins = Counter(log.get("user") for log in failed_logins)
 
         for user, count in user_failed_logins.items():
@@ -204,8 +211,9 @@ class LogAnalysisAgent:
                     user_ips[user] = set()
                 user_ips[user].add(src_ip)
 
+        multiple_ips_threshold = self.ANOMALY_THRESHOLDS["multiple_ips_threshold"]
         for user, ips in user_ips.items():
-            if len(ips) > 5:  # User accessing from many different IPs
+            if len(ips) > multiple_ips_threshold:
                 anomalies.append({
                     "type": "multiple_source_ips",
                     "description": f"User '{user}' is accessing from {len(ips)} different source IPs",

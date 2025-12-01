@@ -68,8 +68,11 @@ def fetch_logs(query: str = "*", size: int = 100, time_range_hours: Optional[int
 
     try:
         res = client.search(index=INDEX, body=body)
-        return [h["_source"] for h in res["hits"]["hits"]]
-    except Exception as e:
+        # Safely extract hits with defensive checks
+        hits = res.get("hits", {})
+        hit_list = hits.get("hits", [])
+        return [h.get("_source", {}) for h in hit_list if h.get("_source")]
+    except Exception:
         # Return empty list if index doesn't exist or other errors
         return []
 
