@@ -1,6 +1,13 @@
-# CRPF Centralized IT System Log Analyzer
+# 🛡️ CRPF Centralized IT System Log Analyzer
 
-**Centralized, AI-assisted SIEM using ELK, Wazuh, and Beats for the Central Reserve Police Force (CRPF).**
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/Python-3.9+-blue)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.95.2-009688)](https://fastapi.tiangolo.com/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED)](https://www.docker.com/)
+[![OpenSearch](https://img.shields.io/badge/OpenSearch-2.9.0-005EB8)](https://opensearch.org/)
+[![Kafka](https://img.shields.io/badge/Apache_Kafka-3.5-231F20)](https://kafka.apache.org/)
+
+> **Centralized, AI-assisted SIEM using ELK, Wazuh, and Beats for the Central Reserve Police Force (CRPF).**
 
 A centralized security log monitoring platform built on the Elastic Stack (Elasticsearch, Logstash, Kibana), OpenSearch, Kafka, and Wazuh to address **SIH Problem Statement 1408: IT System Log Analyzer (Blockchain & Cybersecurity)**.
 
@@ -17,6 +24,28 @@ CRPF units and offices are deployed across diverse locations throughout India. C
 - **Resource constraints**: Limited cybersecurity expertise at individual unit level
 
 This leads to delayed detection of breaches, fragmented security posture, and difficulty in building digital evidence for investigations.
+
+---
+
+## 📸 Screenshots
+
+### Main SOC Dashboard
+![Main Dashboard](examples/screenshots/placeholders/main_dashboard_placeholder.svg)
+*Real-time security monitoring dashboard showing system health, active alerts, and log statistics*
+
+### Log Discovery & Search
+![Discover View](examples/screenshots/placeholders/discover_view_placeholder.svg)
+*OpenSearch Dashboards Discover interface for searching and analyzing logs*
+
+### Alert Investigation
+![Alert Details](examples/screenshots/placeholders/alert_details_placeholder.svg)
+*Detailed alert view for incident investigation and forensic analysis*
+
+### System Health Monitoring
+![System Health](examples/screenshots/placeholders/system_health_placeholder.svg)
+*Infrastructure monitoring showing CPU, memory, and disk metrics across endpoints*
+
+> **Note**: These are placeholder images. Replace with actual screenshots after deployment. See [examples/screenshots/](examples/screenshots/) for guidelines.
 
 ---
 
@@ -123,7 +152,9 @@ For detailed architecture documentation, see [docs/03_architecture.md](docs/03_a
 
 ---
 
-## Getting Started (Local Lab)
+## 🚀 Getting Started (Local Lab)
+
+> **📖 For detailed installation instructions, see [INSTALL.md](INSTALL.md)**
 
 ### Prerequisites
 
@@ -139,18 +170,27 @@ For detailed architecture documentation, see [docs/03_architecture.md](docs/03_a
   - `8000`: FastAPI
   - `1514/1515`: Wazuh agent communication (if using Wazuh)
 
-### Quick Start
+### Quick Start via Git
 
 ```bash
 # Clone the repository
 git clone https://github.com/RATNAKIRAN93/CRPF-Log-Analyzer.git
 cd CRPF-Log-Analyzer
 
+# (Optional) Set up Python virtual environment for local development
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+
 # Start the main stack (OpenSearch + Kafka + Producers + Consumer + API)
 docker compose up -d
 
 # Wait for services to be healthy (approximately 2-3 minutes)
 docker compose ps
+
+# Verify services are running
+curl http://localhost:9200/_cluster/health?pretty
+curl http://localhost:8000/health
 
 # Access the dashboards
 # OpenSearch Dashboards: http://localhost:5601
@@ -216,6 +256,8 @@ For detailed deployment instructions, see [docs/04_deployment_guide.md](docs/04_
 ```
 CRPF-Log-Analyzer/
 ├── README.md                 # This file - project overview and quick start
+├── INSTALL.md                # Detailed installation guide
+├── requirements.txt          # Root Python dependencies
 ├── docs/                     # Detailed documentation
 │   ├── 01_problem_statement.md
 │   ├── 02_system_requirements.md
@@ -243,8 +285,12 @@ CRPF-Log-Analyzer/
 ├── docker-compose.yml        # Main Docker Compose (OpenSearch + Kafka stack)
 ├── docker-elk/               # Traditional ELK stack deployment
 ├── fastapi/                  # FastAPI search service
+│   └── requirements.txt      # FastAPI service dependencies
 ├── consumer/                 # Kafka consumer for log indexing
+│   └── requirements.txt      # Consumer dependencies
 ├── producers/                # Simulated log producers
+│   └── producer/
+│       └── requirements.txt  # Producer dependencies
 └── LICENSE
 ```
 
@@ -267,10 +313,11 @@ CRPF-Log-Analyzer/
 
 | Document | Description |
 |----------|-------------|
+| [Installation Guide](INSTALL.md) | Step-by-step installation via Git |
 | [Problem Statement](docs/01_problem_statement.md) | SIH 1408 problem description and objectives |
 | [System Requirements](docs/02_system_requirements.md) | Hardware, software, and network prerequisites |
 | [Architecture](docs/03_architecture.md) | Detailed system architecture and data flow |
-| [Deployment Guide](docs/04_deployment_guide.md) | Step-by-step installation instructions |
+| [Deployment Guide](docs/04_deployment_guide.md) | Docker and manual deployment instructions |
 | [User Manual](docs/05_user_manual.md) | Role-based user guide with screenshots |
 | [API Endpoints](docs/06_api_endpoints.md) | REST API documentation |
 | [Troubleshooting](docs/07_troubleshooting.md) | Common issues and solutions |

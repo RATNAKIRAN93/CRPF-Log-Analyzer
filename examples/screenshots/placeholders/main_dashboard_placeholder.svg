@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="800" height="450" fill="url(#bg)"/>
+  <!-- Header -->
+  <rect x="0" y="0" width="800" height="60" fill="#0f3460"/>
+  <text x="20" y="38" font-family="Arial, sans-serif" font-size="20" fill="#e94560">CRPF</text>
+  <text x="75" y="38" font-family="Arial, sans-serif" font-size="20" fill="#ffffff">Log Analyzer</text>
+  <text x="400" y="38" font-family="Arial, sans-serif" font-size="14" fill="#a0a0a0" text-anchor="middle">Security Operations Center Dashboard</text>
+  <!-- Stats Cards -->
+  <rect x="20" y="80" width="180" height="80" rx="8" fill="#1a1a2e" stroke="#0f3460" stroke-width="2"/>
+  <text x="110" y="110" font-family="Arial, sans-serif" font-size="12" fill="#a0a0a0" text-anchor="middle">Total Logs (24h)</text>
+  <text x="110" y="140" font-family="Arial, sans-serif" font-size="28" fill="#00d9ff" text-anchor="middle">1.2M</text>
+  <rect x="210" y="80" width="180" height="80" rx="8" fill="#1a1a2e" stroke="#0f3460" stroke-width="2"/>
+  <text x="300" y="110" font-family="Arial, sans-serif" font-size="12" fill="#a0a0a0" text-anchor="middle">Active Alerts</text>
+  <text x="300" y="140" font-family="Arial, sans-serif" font-size="28" fill="#e94560" text-anchor="middle">47</text>
+  <rect x="400" y="80" width="180" height="80" rx="8" fill="#1a1a2e" stroke="#0f3460" stroke-width="2"/>
+  <text x="490" y="110" font-family="Arial, sans-serif" font-size="12" fill="#a0a0a0" text-anchor="middle">Endpoints</text>
+  <text x="490" y="140" font-family="Arial, sans-serif" font-size="28" fill="#00ff88" text-anchor="middle">156</text>
+  <rect x="590" y="80" width="180" height="80" rx="8" fill="#1a1a2e" stroke="#0f3460" stroke-width="2"/>
+  <text x="680" y="110" font-family="Arial, sans-serif" font-size="12" fill="#a0a0a0" text-anchor="middle">Avg Response</text>
+  <text x="680" y="140" font-family="Arial, sans-serif" font-size="28" fill="#ffcc00" text-anchor="middle">23ms</text>
+  <!-- Chart Area -->
+  <rect x="20" y="180" width="480" height="180" rx="8" fill="#1a1a2e" stroke="#0f3460" stroke-width="2"/>
+  <text x="30" y="205" font-family="Arial, sans-serif" font-size="14" fill="#ffffff">Log Volume (Last 24 Hours)</text>
+  <!-- Simulated Chart -->
+  <polyline points="40,340 80,320 120,330 160,290 200,310 240,280 280,300 320,260 360,280 400,250 440,270 480,240" fill="none" stroke="#00d9ff" stroke-width="2"/>
+  <!-- Alerts Panel -->
+  <rect x="510" y="180" width="260" height="180" rx="8" fill="#1a1a2e" stroke="#0f3460" stroke-width="2"/>
+  <text x="520" y="205" font-family="Arial, sans-serif" font-size="14" fill="#ffffff">Recent Alerts</text>
+  <circle cx="530" cy="235" r="6" fill="#e94560"/>
+  <text x="545" y="240" font-family="Arial, sans-serif" font-size="11" fill="#a0a0a0">Failed login attempt detected</text>
+  <circle cx="530" cy="265" r="6" fill="#ffcc00"/>
+  <text x="545" y="270" font-family="Arial, sans-serif" font-size="11" fill="#a0a0a0">High CPU usage on server-03</text>
+  <circle cx="530" cy="295" r="6" fill="#00ff88"/>
+  <text x="545" y="300" font-family="Arial, sans-serif" font-size="11" fill="#a0a0a0">New agent registered</text>
+  <circle cx="530" cy="325" r="6" fill="#e94560"/>
+  <text x="545" y="330" font-family="Arial, sans-serif" font-size="11" fill="#a0a0a0">Suspicious network activity</text>
+  <!-- Footer -->
+  <rect x="0" y="380" width="800" height="70" fill="#0f3460"/>
+  <text x="400" y="415" font-family="Arial, sans-serif" font-size="12" fill="#a0a0a0" text-anchor="middle">CRPF IT System Log Analyzer | Central Reserve Police Force</text>
+  <text x="400" y="435" font-family="Arial, sans-serif" font-size="10" fill="#666666" text-anchor="middle">Placeholder Image - Replace with actual screenshot after deployment</text>
+</svg>
