@@ -1,0 +1,137 @@
+# Winlogbeat Configuration Example for CRPF Log Analyzer
+# Copy to C:\Program Files\Winlogbeat\winlogbeat.yml and configure
+# Documentation: https://www.elastic.co/guide/en/beats/winlogbeat/current/index.html
+
+# ============================================================
+# WINLOGBEAT INPUT CONFIGURATION
+# ============================================================
+
+winlogbeat.event_logs:
+  # Security events - authentication, privilege use, policy changes
+  - name: Security
+    event_id: 4624, 4625, 4648, 4672, 4688, 4697, 4698, 4720, 4722, 4723, 4724, 4728, 4732, 4756, 4776
+    ignore_older: 72h
+    
+  # System events - service state changes, system errors
+  - name: System
+    ignore_older: 72h
+    
+  # Application events - application errors and warnings
+  - name: Application
+    ignore_older: 72h
+    level: error, warning
+    
+  # PowerShell logging (if enabled)
+  - name: Microsoft-Windows-PowerShell/Operational
+    event_id: 4103, 4104
+    ignore_older: 72h
+    
+  # Sysmon events (if Sysmon is installed - recommended for security monitoring)
+  - name: Microsoft-Windows-Sysmon/Operational
+    ignore_older: 72h
+
+# ============================================================
+# PROCESSORS (Data enrichment)
+# ============================================================
+
+processors:
+  # Add host metadata
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+      
+  # Add cloud metadata (if running in cloud)
+  - add_cloud_metadata: ~
+  
+  # Drop debug events
+  - drop_event:
+      when:
+        regexp:
+          message: "DEBUG"
+          
+  # Add CRPF-specific fields
+  - add_fields:
+      target: crpf
+      fields:
+        sector: "SECTOR-A"           # Replace with actual sector
+        unit: "UNIT-001"             # Replace with actual unit
+        deployment: "production"
+
+# ============================================================
+# OUTPUT CONFIGURATION
+# ============================================================
+
+# Option 1: Direct to Elasticsearch/OpenSearch
+output.elasticsearch:
+  hosts: ["<CENTRAL-SERVER-IP>:9200"]
+  
+  # Authentication (uncomment if security is enabled)
+  # username: "elastic"
+  # password: "<your-password>"
+  
+  # SSL/TLS (uncomment for secure connections)
+  # ssl.enabled: true
+  # ssl.certificate_authorities: ["C:/path/to/ca.crt"]
+  # ssl.verification_mode: full
+  
+  # Index naming
+  index: "winlogbeat-%{[agent.version]}-%{+yyyy.MM.dd}"
+  
+  # Bulk indexing settings
+  bulk_max_size: 50
+
+# Option 2: Output to Logstash (comment out Elasticsearch section above)
+# output.logstash:
+#   hosts: ["<CENTRAL-SERVER-IP>:5044"]
+#   ssl.enabled: true
+#   ssl.certificate_authorities: ["C:/path/to/ca.crt"]
+
+# Option 3: Output to Kafka (comment out other output sections)
+# output.kafka:
+#   hosts: ["<CENTRAL-SERVER-IP>:9092"]
+#   topic: "winlogbeat"
+#   required_acks: 1
+#   compression: gzip
+
+# ============================================================
+# KIBANA SETUP (for dashboards and visualizations)
+# ============================================================
+
+setup.kibana:
+  host: "<CENTRAL-SERVER-IP>:5601"
+  # username: "elastic"
+  # password: "<your-password>"
+
+# Load pre-built dashboards
+setup.dashboards.enabled: true
+
+# ============================================================
+# TEMPLATE SETTINGS
+# ============================================================
+
+setup.template.name: "winlogbeat"
+setup.template.pattern: "winlogbeat-*"
+setup.template.settings:
+  index.number_of_shards: 1
+  index.number_of_replicas: 0
+
+# ============================================================
+# LOGGING
+# ============================================================
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: C:/ProgramData/winlogbeat/logs
+  name: winlogbeat
+  keepfiles: 7
+  permissions: 0600
+
+# ============================================================
+# MONITORING (optional - for monitoring Winlogbeat itself)
+# ============================================================
+
+# monitoring.enabled: true
+# monitoring.elasticsearch:
+#   hosts: ["<CENTRAL-SERVER-IP>:9200"]
+#   username: beats_system
+#   password: <beats_system_password>

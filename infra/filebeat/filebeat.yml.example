@@ -1,0 +1,224 @@
+# Filebeat Configuration Example for CRPF Log Analyzer
+# Copy to /etc/filebeat/filebeat.yml and configure
+# Documentation: https://www.elastic.co/guide/en/beats/filebeat/current/index.html
+
+# ============================================================
+# FILEBEAT INPUTS
+# ============================================================
+
+filebeat.inputs:
+
+  # System logs (syslog)
+  - type: log
+    id: syslog
+    enabled: true
+    paths:
+      - /var/log/syslog
+      - /var/log/messages
+    exclude_files: ['\.gz$']
+    fields:
+      log_type: syslog
+    fields_under_root: true
+    
+  # Authentication logs
+  - type: log
+    id: auth-logs
+    enabled: true
+    paths:
+      - /var/log/auth.log
+      - /var/log/secure
+    exclude_files: ['\.gz$']
+    fields:
+      log_type: authentication
+    fields_under_root: true
+    
+  # Audit logs
+  - type: log
+    id: audit-logs
+    enabled: true
+    paths:
+      - /var/log/audit/audit.log
+    exclude_files: ['\.gz$']
+    fields:
+      log_type: audit
+    fields_under_root: true
+    
+  # Kernel logs
+  - type: log
+    id: kernel-logs
+    enabled: true
+    paths:
+      - /var/log/kern.log
+    exclude_files: ['\.gz$']
+    fields:
+      log_type: kernel
+    fields_under_root: true
+    
+  # Application logs (customize paths for your applications)
+  - type: log
+    id: app-logs
+    enabled: true
+    paths:
+      - /var/log/apache2/*.log
+      - /var/log/nginx/*.log
+      - /var/log/application/*.log
+    exclude_files: ['\.gz$']
+    fields:
+      log_type: application
+    fields_under_root: true
+    
+  # Container logs (if running Docker)
+  # - type: container
+  #   id: docker-logs
+  #   enabled: true
+  #   paths:
+  #     - /var/lib/docker/containers/*/*.log
+  #   fields:
+  #     log_type: container
+  #   fields_under_root: true
+
+# ============================================================
+# FILEBEAT MODULES
+# ============================================================
+
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: true
+  reload.period: 10s
+
+# Enable specific modules (run: filebeat modules enable <module>)
+# - system
+# - apache
+# - nginx
+# - auditd
+# - iptables
+
+# ============================================================
+# PROCESSORS (Data enrichment and parsing)
+# ============================================================
+
+processors:
+  # Add host metadata
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+      netinfo.enabled: true
+      
+  # Add cloud metadata
+  - add_cloud_metadata: ~
+  
+  # Add Docker metadata
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+      
+  # Parse syslog format
+  - dissect:
+      tokenizer: "%{timestamp} %{+timestamp} %{+timestamp} %{hostname} %{program}[%{pid}]: %{message}"
+      field: "message"
+      target_prefix: "syslog"
+      when:
+        equals:
+          log_type: syslog
+          
+  # Add CRPF-specific fields
+  - add_fields:
+      target: crpf
+      fields:
+        sector: "SECTOR-A"           # Replace with actual sector
+        unit: "UNIT-001"             # Replace with actual unit
+        deployment: "production"
+        
+  # Drop debug/trace messages (optional)
+  # - drop_event:
+  #     when:
+  #       regexp:
+  #         message: "DEBUG|TRACE"
+
+# ============================================================
+# OUTPUT CONFIGURATION
+# ============================================================
+
+# Option 1: Direct to Elasticsearch/OpenSearch
+output.elasticsearch:
+  hosts: ["<CENTRAL-SERVER-IP>:9200"]
+  
+  # Authentication (uncomment if security is enabled)
+  # username: "elastic"
+  # password: "<your-password>"
+  
+  # SSL/TLS (uncomment for secure connections)
+  # ssl.enabled: true
+  # ssl.certificate_authorities: ["/etc/filebeat/ca.crt"]
+  # ssl.verification_mode: full
+  
+  # Index naming
+  index: "filebeat-%{[agent.version]}-%{+yyyy.MM.dd}"
+  
+  # Performance settings
+  bulk_max_size: 50
+  worker: 1
+
+# Option 2: Output to Logstash (comment out Elasticsearch section above)
+# output.logstash:
+#   hosts: ["<CENTRAL-SERVER-IP>:5044"]
+#   ssl.enabled: true
+#   ssl.certificate_authorities: ["/etc/filebeat/ca.crt"]
+#   loadbalance: true
+
+# Option 3: Output to Kafka (comment out other output sections)
+# output.kafka:
+#   hosts: ["<CENTRAL-SERVER-IP>:9092"]
+#   topic: "filebeat"
+#   required_acks: 1
+#   compression: gzip
+
+# ============================================================
+# KIBANA SETUP (for dashboards and visualizations)
+# ============================================================
+
+setup.kibana:
+  host: "<CENTRAL-SERVER-IP>:5601"
+  # username: "elastic"
+  # password: "<your-password>"
+
+# Load pre-built dashboards
+setup.dashboards.enabled: true
+
+# ============================================================
+# ILM (Index Lifecycle Management)
+# ============================================================
+
+setup.ilm.enabled: auto
+setup.ilm.rollover_alias: "filebeat"
+setup.ilm.pattern: "{now/d}-000001"
+
+# ============================================================
+# TEMPLATE SETTINGS
+# ============================================================
+
+setup.template.name: "filebeat"
+setup.template.pattern: "filebeat-*"
+setup.template.settings:
+  index.number_of_shards: 1
+  index.number_of_replicas: 0
+
+# ============================================================
+# LOGGING
+# ============================================================
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0640
+
+# ============================================================
+# MONITORING (optional)
+# ============================================================
+
+# monitoring.enabled: true
+# monitoring.elasticsearch:
+#   hosts: ["<CENTRAL-SERVER-IP>:9200"]
+#   username: beats_system
+#   password: <beats_system_password>
