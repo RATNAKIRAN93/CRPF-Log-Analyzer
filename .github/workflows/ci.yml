@@ -5,15 +5,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install PyYAML
+        run: pip install pyyaml
       - name: Validate YAML
-        run: python - <<'PY'
-import yaml,glob,sys
-for f in glob.glob('**/*.y*ml', recursive=True):
-  try:
-    yaml.safe_load(open(f))
-    print('OK', f)
-  except Exception as e:
-    print('ERR', f, e); sys.exit(1)
-PY
+        run: |
+          python -c "
+          import yaml
+          import glob
+          import sys
+          errors = []
+          for f in glob.glob('**/*.y*ml', recursive=True):
+              try:
+                  with open(f) as file:
+                      yaml.safe_load(file)
+                  print('OK', f)
+              except Exception as e:
+                  print('ERR', f, e)
+                  errors.append(f)
+          if errors:
+              sys.exit(1)
+          "
       - name: Ensure docs folder exists
         run: mkdir -p docs
