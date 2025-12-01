@@ -1,0 +1,180 @@
+# Metricbeat Configuration Example for CRPF Log Analyzer
+# Copy to /etc/metricbeat/metricbeat.yml and configure
+# Documentation: https://www.elastic.co/guide/en/beats/metricbeat/current/index.html
+
+# ============================================================
+# METRICBEAT MODULES
+# ============================================================
+
+metricbeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+# System module - collect system-level metrics
+metricbeat.modules:
+  - module: system
+    period: 10s
+    metricsets:
+      - cpu
+      - load
+      - memory
+      - network
+      - process
+      - process_summary
+      - socket_summary
+      - diskio
+      - filesystem
+      - fsstat
+    process.include_top_n:
+      by_cpu: 5
+      by_memory: 5
+    cpu.metrics: ["percentages", "normalized_percentages"]
+    
+  # Collect per-process stats
+  - module: system
+    period: 30s
+    metricsets:
+      - process
+    process.cmdline.cache.enabled: true
+    process.cgroups.enabled: true
+    process.include_top_n:
+      by_cpu: 10
+      by_memory: 10
+      
+  # Network socket stats
+  - module: system
+    period: 30s
+    metricsets:
+      - socket_summary
+
+# Docker module (if monitoring Docker containers)
+# - module: docker
+#   period: 10s
+#   hosts: ["unix:///var/run/docker.sock"]
+#   metricsets:
+#     - container
+#     - cpu
+#     - diskio
+#     - healthcheck
+#     - info
+#     - memory
+#     - network
+
+# Elasticsearch module (if monitoring Elasticsearch)
+# - module: elasticsearch
+#   period: 10s
+#   hosts: ["<CENTRAL-SERVER-IP>:9200"]
+#   username: "elastic"
+#   password: "<your-password>"
+
+# ============================================================
+# PROCESSORS (Data enrichment)
+# ============================================================
+
+processors:
+  # Add host metadata (OS, hostname, IPs)
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+      netinfo.enabled: true
+      
+  # Add cloud metadata (AWS, GCP, Azure)
+  - add_cloud_metadata: ~
+  
+  # Add Docker metadata
+  - add_docker_metadata: ~
+  
+  # Add CRPF-specific fields
+  - add_fields:
+      target: crpf
+      fields:
+        sector: "SECTOR-A"           # Replace with actual sector
+        unit: "UNIT-001"             # Replace with actual unit
+        deployment: "production"
+        
+  # Drop events with low CPU usage (optional, to reduce volume)
+  # - drop_event:
+  #     when:
+  #       range:
+  #         system.cpu.total.pct:
+  #           lt: 0.01
+
+# ============================================================
+# OUTPUT CONFIGURATION
+# ============================================================
+
+# Option 1: Direct to Elasticsearch/OpenSearch
+output.elasticsearch:
+  hosts: ["<CENTRAL-SERVER-IP>:9200"]
+  
+  # Authentication (uncomment if security is enabled)
+  # username: "elastic"
+  # password: "<your-password>"
+  
+  # SSL/TLS (uncomment for secure connections)
+  # ssl.enabled: true
+  # ssl.certificate_authorities: ["/etc/metricbeat/ca.crt"]
+  # ssl.verification_mode: full
+  
+  # Index naming
+  index: "metricbeat-%{[agent.version]}-%{+yyyy.MM.dd}"
+  
+  # Performance settings
+  bulk_max_size: 50
+  worker: 1
+
+# Option 2: Output to Logstash (comment out Elasticsearch section above)
+# output.logstash:
+#   hosts: ["<CENTRAL-SERVER-IP>:5044"]
+#   ssl.enabled: true
+#   ssl.certificate_authorities: ["/etc/metricbeat/ca.crt"]
+
+# Option 3: Output to Kafka (comment out other output sections)
+# output.kafka:
+#   hosts: ["<CENTRAL-SERVER-IP>:9092"]
+#   topic: "metricbeat"
+#   required_acks: 1
+#   compression: gzip
+
+# ============================================================
+# KIBANA SETUP (for dashboards and visualizations)
+# ============================================================
+
+setup.kibana:
+  host: "<CENTRAL-SERVER-IP>:5601"
+  # username: "elastic"
+  # password: "<your-password>"
+
+# Load pre-built dashboards
+setup.dashboards.enabled: true
+
+# ============================================================
+# TEMPLATE SETTINGS
+# ============================================================
+
+setup.template.name: "metricbeat"
+setup.template.pattern: "metricbeat-*"
+setup.template.settings:
+  index.number_of_shards: 1
+  index.number_of_replicas: 0
+
+# ============================================================
+# LOGGING
+# ============================================================
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/metricbeat
+  name: metricbeat
+  keepfiles: 7
+  permissions: 0640
+
+# ============================================================
+# MONITORING (optional)
+# ============================================================
+
+# monitoring.enabled: true
+# monitoring.elasticsearch:
+#   hosts: ["<CENTRAL-SERVER-IP>:9200"]
+#   username: beats_system
+#   password: <beats_system_password>
