@@ -1,0 +1,148 @@
+# CRPF Log Analyzer Infrastructure - Docker Compose
+# This file provides a reference configuration for deploying the log analyzer stack
+
+# Note: The main docker-compose.yml is in the repository root.
+# This file documents the infrastructure services and their configurations.
+
+services:
+
+  # ============================================================
+  # MESSAGE QUEUE LAYER
+  # ============================================================
+
+  # Zookeeper - Distributed coordination service for Kafka
+  # Required for Kafka broker coordination
+  zookeeper:
+    image: bitnami/zookeeper:3.8
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    ports:
+      - "2181:2181"       # Zookeeper client port
+    volumes:
+      - zookeeper-data:/bitnami/zookeeper
+
+  # Apache Kafka - Distributed message queue
+  # Buffers log events between agents and Elasticsearch
+  kafka:
+    image: bitnami/kafka:3.5
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    ports:
+      - "9092:9092"       # Kafka broker port
+    depends_on:
+      - zookeeper
+    volumes:
+      - kafka-data:/bitnami/kafka
+
+  # ============================================================
+  # STORAGE & SEARCH LAYER
+  # ============================================================
+
+  # OpenSearch - Search and analytics engine
+  # Stores all log data and enables fast search
+  opensearch:
+    image: opensearchproject/opensearch:2.9.0
+    environment:
+      - discovery.type=single-node
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m   # Adjust based on available RAM
+      - plugins.security.disabled=true           # Disable for development
+      # For production, enable security:
+      # - plugins.security.ssl.transport.pemcert_filepath=node.pem
+      # - plugins.security.ssl.transport.pemkey_filepath=node-key.pem
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"       # REST API
+      - "9300:9300"       # Node-to-node communication (if clustering)
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      retries: 10
+
+  # ============================================================
+  # VISUALIZATION LAYER
+  # ============================================================
+
+  # OpenSearch Dashboards - Visualization and UI
+  # Provides dashboards, search interface, and management
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.9.0
+    environment:
+      - OPENSEARCH_HOSTS=http://opensearch:9200
+      - DISABLE_SECURITY_DASHBOARDS_PLUGIN=true   # Disable for development
+    ports:
+      - "5601:5601"       # Web UI
+    depends_on:
+      - opensearch
+
+  # ============================================================
+  # LOG PRODUCER LAYER (Simulated)
+  # ============================================================
+
+  # Producer 1 - Simulates endpoint log generation
+  producer1:
+    build: ../producers/producer
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - ENDPOINT_NAME=endpoint-1
+    depends_on:
+      - kafka
+
+  # Producer 2 - Second simulated endpoint
+  producer2:
+    build: ../producers/producer
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - ENDPOINT_NAME=endpoint-2
+    depends_on:
+      - kafka
+
+  # ============================================================
+  # LOG CONSUMER/INDEXER LAYER
+  # ============================================================
+
+  # Consumer - Indexes logs from Kafka to OpenSearch
+  consumer:
+    build: ../consumer
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - OPENSEARCH_HOST=http://opensearch:9200
+      - OPENSEARCH_INDEX=system-logs
+    depends_on:
+      - kafka
+      - opensearch
+
+  # ============================================================
+  # API LAYER
+  # ============================================================
+
+  # FastAPI - REST API for programmatic access
+  fastapi:
+    build: ../fastapi
+    ports:
+      - "8000:8000"       # REST API
+    environment:
+      - OPENSEARCH_HOST=http://opensearch:9200
+      - OPENSEARCH_INDEX=system-logs
+    depends_on:
+      - opensearch
+
+# ============================================================
+# VOLUMES
+# ============================================================
+
+volumes:
+  opensearch-data:        # Persistent storage for OpenSearch indices
+  zookeeper-data:         # Zookeeper data
+  kafka-data:             # Kafka message data
