@@ -13,7 +13,7 @@ services:
   # Zookeeper - Distributed coordination service for Kafka
   # Required for Kafka broker coordination
   zookeeper:
-    image: bitnami/zookeeper:3.8
+    image: soldevelo/zookeeper:3.8
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
     ports:
@@ -24,7 +24,7 @@ services:
   # Apache Kafka - Distributed message queue
   # Buffers log events between agents and Elasticsearch
   kafka:
-    image: bitnami/kafka:3.5
+    image: soldevelo/kafka:3.5
     environment:
       - KAFKA_BROKER_ID=1
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
